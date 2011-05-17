@@ -5,6 +5,8 @@ import java.util.ArrayList;
 
 import javax.swing.JFrame;
 
+import database.PostgresqlConnectionFactory;
+
 
 public class SqlDb2 {
 		
@@ -37,7 +39,8 @@ public class SqlDb2 {
 		}
 		try
 		{
-	     conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/taxiPath", "postgres", "crosser");
+		 conn = PostgresqlConnectionFactory.createConnection();
+	     //conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/taxiPath", "postgres", "crosser");
 		}
 		catch (SQLException e) 
 		{

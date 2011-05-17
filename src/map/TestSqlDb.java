@@ -49,7 +49,7 @@ int[] route = {233, 732, 361, 556, 512, 193};
 		a.findClosestPoint(taxiX, taxiY, taxiID);
 		}
 		
-		Sqldb v = new Sqldb();
+		SqlDb2 v = new SqlDb2();
 		TaxiMap frame = new TaxiMap(a.Algorithm()); //v.write()
 		frame.setTitle("Map");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

@@ -8,6 +8,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
+import database.PostgresqlConnectionFactory;
+
 public class Algorithm 
 {
 
@@ -37,8 +39,9 @@ public class Algorithm
          e.printStackTrace();
       }
       try
-      {
-        conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/taxiPath", "postgres", "crosser");
+      {	
+    	  conn = PostgresqlConnectionFactory.createConnection();
+	     //conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/taxiPath", "postgres", "crosser");
       }
       catch (SQLException e) 
       {          
