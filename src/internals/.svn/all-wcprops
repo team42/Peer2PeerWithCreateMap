@@ -1,0 +1,77 @@
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/se3proj/!svn/ver/505/Team2Server/src/internals
+END
+ClientSessionHandler.java
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/se3proj/!svn/ver/424/Team2Server/src/internals/ClientSessionHandler.java
+END
+Log.java
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/se3proj/!svn/ver/479/Team2Server/src/internals/Log.java
+END
+LocalRegionalServer.java
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/se3proj/!svn/ver/505/Team2Server/src/internals/LocalRegionalServer.java
+END
+Initiator.java
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/se3proj/!svn/ver/502/Team2Server/src/internals/Initiator.java
+END
+Wait.java
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/se3proj/!svn/ver/364/Team2Server/src/internals/Wait.java
+END
+Database.java
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/se3proj/!svn/ver/519/Team2Server/src/internals/Database.java
+END
+randomStations.java
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/se3proj/!svn/ver/513/Team2Server/src/internals/randomStations.java
+END
+SendUdpForTesting.java
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/se3proj/!svn/ver/417/Team2Server/src/internals/SendUdpForTesting.java
+END
+SSLListener.java
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/se3proj/!svn/ver/448/Team2Server/src/internals/SSLListener.java
+END
+MainForTesting.java
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/se3proj/!svn/ver/470/Team2Server/src/internals/MainForTesting.java
+END
+ServiceManager.java
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/se3proj/!svn/ver/502/Team2Server/src/internals/ServiceManager.java
+END
+BSData.java
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/se3proj/!svn/ver/430/Team2Server/src/internals/BSData.java
+END

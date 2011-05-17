@@ -1,0 +1,59 @@
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/se3proj/!svn/ver/500/Team2Server/src/commonProtocol/packet
+END
+LoginPacket.java
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/se3proj/!svn/ver/380/Team2Server/src/commonProtocol/packet/LoginPacket.java
+END
+LogoutPacket.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/se3proj/!svn/ver/482/Team2Server/src/commonProtocol/packet/LogoutPacket.java
+END
+StationRequestPacket.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/se3proj/!svn/ver/416/Team2Server/src/commonProtocol/packet/StationRequestPacket.java
+END
+StationRespondPacket.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/se3proj/!svn/ver/507/Team2Server/src/commonProtocol/packet/StationRespondPacket.java
+END
+BSRequestPacket.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/se3proj/!svn/ver/285/Team2Server/src/commonProtocol/packet/BSRequestPacket.java
+END
+AlivePacket.java
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/se3proj/!svn/ver/442/Team2Server/src/commonProtocol/packet/AlivePacket.java
+END
+CPPacket.java
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/se3proj/!svn/ver/483/Team2Server/src/commonProtocol/packet/CPPacket.java
+END
+UpdatePacket.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/se3proj/!svn/ver/460/Team2Server/src/commonProtocol/packet/UpdatePacket.java
+END
+BSPacket.java
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/se3proj/!svn/ver/500/Team2Server/src/commonProtocol/packet/BSPacket.java
+END

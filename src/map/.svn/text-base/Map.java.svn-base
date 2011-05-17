@@ -1,0 +1,87 @@
+package map;
+
+import javax.swing.*;
+
+import pathCalculation.Station;
+import common.*;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.util.ArrayList;
+
+public class Map extends JFrame {
+
+	ArrayList<SerializableStation> stationArray = new ArrayList<SerializableStation>();
+	ArrayList<SerializableStation[]> connectionArray;
+
+	/**
+	 * Normal constructor
+	 * @param myStations
+	 * @param connections
+	 */
+	public Map(SerializableStation[] myStations, ArrayList<SerializableStation[]> connections) {
+		loadStations(myStations);
+		connectionArray = connections;
+		add(new PaintPanel());
+	}
+
+	/**
+	 * Constructor that takes stations instead of {@link SerializableStation}.
+	 * @param myStations
+	 * @param connections
+	 */
+	public Map(Station[] myStations, ArrayList<Station[]> connections) {
+		
+		SerializableStation[] mySerStations = new SerializableStation[myStations.length+1];	
+		
+		for (int i = 0; i < myStations.length; i++) {
+			mySerStations[i] = myStations[i].serStation;
+			
+		}
+		
+		ArrayList<SerializableStation[]> connectionsTemp = new ArrayList<SerializableStation[]>();
+		
+		for (Station[] stations : connections) {
+			SerializableStation[] thisPair = {stations[0].serStation ,stations[1].serStation};
+			connectionsTemp.add(thisPair); 
+		}
+		
+		loadStations(mySerStations);
+		connectionArray = connectionsTemp;
+		add(new PaintPanel());
+	}
+
+	public void loadStations(SerializableStation[] myStations) {
+		for (int i = 0; i < myStations.length - 1; i++) {
+			stationArray.add(myStations[i]);
+		}
+	}
+
+	@SuppressWarnings("serial")
+	class PaintPanel extends JPanel {
+		S2 S2 = new S2(1, 1, 10, 1000);
+
+		protected void paintComponent(Graphics g) {
+			super.paintComponent(g);
+
+			S2.drawAxis(g);
+
+			S2.drawLine(g, new V2(0, 0), new V2(0, 1000));
+			S2.drawLine(g, new V2(0, 1000), new V2(1000, 1000));
+			S2.drawLine(g, new V2(1000, 1000), new V2(1000, 0));
+			S2.drawLine(g, new V2(1000, 0), new V2(0, 0));
+
+			g.setColor(Color.BLACK);
+			// i indexes each element successively
+			for (int i = 0; i < stationArray.size(); i++) {
+				S2.drawStation(g, stationArray.get(i), (stationArray.get(i).stationid > 999000 ? true : false));
+			}
+
+			// draw connections
+			for (int i = 0; i < connectionArray.size(); i++) {
+				S2.drawStationLine(g, connectionArray.get(i)[0], connectionArray.get(i)[1], true);
+			}
+
+		}
+	}
+}

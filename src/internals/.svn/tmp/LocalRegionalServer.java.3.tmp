@@ -1,0 +1,249 @@
+package internals;
+
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Scanner;
+
+import common.*;
+import commonProtocol.*;
+import commonProtocol.packet.AlivePacket;
+import commonProtocol.packet.BSPacket;
+
+public class LocalRegionalServer {
+	// Settings
+	public static int commonProtoTCPPort = 50001;
+	public static int commonProtoUDPPort = 50001;
+	public static int preAppSSLPort = 50002;
+	public static String serverIPAddress = "";
+	public static int regionNumber = 1;
+
+	// Static instances
+	public static ArrayList<BSData> localBsDataArray = new ArrayList<BSData>();
+
+	// Array of generic type arraylists, workaround for java bug:
+	@SuppressWarnings("unchecked")
+	public static ArrayList<BSData>[] foreignRegionBSData = (ArrayList<BSData>[]) new ArrayList[50];
+
+	// timestamp for latest bsdata:
+	public static long aliveUnixTimeStamp;
+
+	// If an update is received, the server is part of the 2p2 network
+	public static boolean updateReceived = false;
+	
+	//Handles nodelist for both update packets, and alive packets.
+
+	public static CommonProtoTCP commonProtoTCP;
+	public static CommonProtoUDP commonProtoUDP;
+	public static BSPacket bsPacket = new BSPacket();
+
+	public static void main(String[] args) {
+
+		//Singleton objects:
+		Database db = Database.getInstance();
+		//AStar aStar = new AStar();//.getInstance();
+		Log log = Log.getInstance();
+		NodeList nodeList = NodeList.getInstance();
+
+		// Setup server with ports and region
+		Scanner in = new Scanner(System.in);
+		System.out.println("Server setup!\n");
+		System.out.println("Common TCP/UDP port: ");
+		int common = in.nextInt();
+		commonProtoUDPPort = common;
+		commonProtoTCPPort = common;
+		System.out.println("SSL port: ");
+		preAppSSLPort = in.nextInt();
+		System.out.println("Region: ");
+		regionNumber = in.nextInt();
+		System.out.println("Server setup finished!");
+
+		// initialize database (cache data in memory)
+		try {
+			db.init();
+		} catch (Exception e) {
+			System.err
+					.println("An error occured when initializing the database:");
+			e.printStackTrace();
+		}
+
+		// Get IP Address
+		java.net.InetAddress inetAddress;
+		try {
+			inetAddress = java.net.InetAddress.getLocalHost();
+			serverIPAddress = inetAddress.getHostAddress();
+			log.printAndLog("Server IP adress is: " + serverIPAddress);
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			System.err.println("Error when trying to get server IP Address");
+		}
+
+		// start communication:
+		log.printAndLog("Starting local regional server: ");
+		commonProtoTCP = new CommonProtoTCP(commonProtoTCPPort);
+		commonProtoTCP.setDaemon(true);
+		commonProtoTCP.start();
+		commonProtoUDP = new CommonProtoUDP(commonProtoUDPPort);
+		commonProtoUDP.setDaemon(true);
+		commonProtoUDP.start();
+		SSLListener sslListener = new SSLListener(preAppSSLPort);
+		sslListener.setDaemon(true);
+		sslListener.start();
+
+		// TODO Login to P2P network
+		// Send login for each node in the nodelist stored in the database, and
+		// waits for X seconds for an update from that node, if no update is
+		// replied try next node in nodelist.
+		nodeList.nodeLinkList.addAll(db.getNodelist());
+		
+		//Start alivehandler
+		new AliveHandler();
+
+		if (nodeList.isEmpty()) {
+			System.err
+					.println("Nodelist is empty, please login manually to a known server");
+			Wait.milliSec(0);
+		} else {
+			log.printAndLog("Sending login, to all nodes on the nodeList from Database");
+			for (Node node : nodeList.nodeLinkList) {
+				LocalRegionalServer.commonProtoUDP.sendLogin(node);
+				log.printAndLog("Send login command to: " + node.ip + ":"
+						+ node.udpPort + " awaiting reply (Update)");
+				// Waits for ~ 2000 ms
+				for (int waitInt = 0; waitInt < 40; waitInt++) {
+					System.out.print(".");
+					Wait.milliSec(0);
+					if (updateReceived)
+						break;
+				}
+				if (updateReceived) {
+					log.printAndLog("Update received, login to p2p network success");
+					break;
+				}
+				log.printAndLog("No update received, try next node");
+			}
+			if (!updateReceived)
+				log.printAndLogE("No nodes in the nodelist responded to login, please login manually to a known server");
+			Wait.milliSec(0);
+		}
+
+		// Get the local bs data, this is the right way of doing it where there
+		// is no duplicates, and the lowest region id is always leftmost,
+		// but the common protocol says that routes should be presented both
+		// from
+		// region a to region b, and from region b to region a. (duplicate data)
+		// keep this code block for the documentation
+		// ArrayList<Station> bsStations = new ArrayList<Station>();
+		// bsStations = db.getBorderStations();
+		// // Generate localBSData array with routes from A*
+		// System.out.println("Generating BS Data:");
+		// for (int x = 0; x < bsStations.size(); x++) {
+		// Station stationX = bsStations.get(x);
+		// for (int y = x + 1; y < bsStations.size(); y++) {
+		// Station stationY = bsStations.get(y);
+		// if (stationX.region.get(0) != stationY.region.get(0)
+		// && stationX.stationid != stationY.stationid) {
+		// Route route = aStar.getRoute(stationX, stationY);
+		// // For testing-> System.out.println(route.toString());
+		// localBsDataArray.add(new BSData(regionNumber,
+		// stationX.region.get(0), stationY.region.get(0),
+		// route.route, route.cost, route.cost));
+		// }
+		// }
+		// }
+
+		// Gets the BS Data for both directions (a to b, and b to a)
+		// if the two regions are the same, the data is ignored
+		// efficiency is O(n^2) where n is the number of border stations
+		// The number of routes outputted should be (n^2)-n
+		try {
+			log.printAndLog("Generating shortest path for all border stations (BS Data)");
+			Wait.milliSec(0); // just for visual purposes
+			ArrayList<Station> bsStations = new ArrayList<Station>();
+			bsStations = db.getBorderStations();
+			for (Station stationX : bsStations) {
+				for (Station stationY : bsStations) {
+					if (!stationX.equals(stationY)) {
+						Route route = new AStar().getRoute(stationX, stationY);
+						localBsDataArray.add(new BSData(regionNumber,
+								stationX.region.get(0), stationY.region.get(0),
+								route.route, route.cost, route.cost));
+						System.out.println("StationX: "+stationX.stationName + ", StationY: "+stationY.stationName);
+						System.out.println("first route: " +route.route.get(0).stationName + ", last route: " + route.route.get(route.route.size()-1).stationName + "\n");
+					}
+				}
+			}
+			System.out.println("\nBS Data successfully generated");
+			aliveUnixTimeStamp = System.currentTimeMillis()/1000;
+		} catch (Exception e) {
+			System.err
+					.println("An error occured while trying to calculate BS Data:");
+			e.printStackTrace();
+		}
+
+		// generate bs data string and print it out
+		bsPacket.generateCPPacket();
+		System.out.println("BSPacket string generated:\n"
+				+ bsPacket.packetAsString);
+
+		log.printAndLog("\nWaiting 10. seconds to get alive data from other regional servers on p2p network");
+		Wait.milliSec(0);
+
+		// initially send bs reguest to everyone on
+		LinkedList<Node> aliveNodes = nodeList.getAliveNodes();
+		for (Node aliveNode : aliveNodes) {
+			// dont send to self, not done
+			if (aliveNode != null)
+				if (!((serverIPAddress.equals(aliveNode.ip)||serverIPAddress.equals("127.0.0.1"))&& aliveNode.tcpPort == commonProtoTCPPort))
+					commonProtoTCP.sendBSRequest(aliveNode);
+		}
+		// Start Servicemanager
+		ServiceManager serviceManager = new ServiceManager();
+		serviceManager.setDaemon(true);
+		serviceManager.start();
+
+		// Takes care of traversing the nodelist fro old AliveTimeStamp
+		new NodeListHandler();
+		
+		
+		Wait.forever();
+		//
+		// // Database.getInstance().createStations(); // is done in init()
+		// instead
+		// // Database.getInstance().createConnections(); // is done in init()
+		// instead
+		// // Database.getInstance().createBorderStations(); // There is a bug
+		// // is done in init() instead
+		// //
+		// System.out.println(Database.getInstance().getStation(1).neighbors.get(0).stationRef.stationName);
+		// //
+		// System.out.println(Database.getInstance().getStation(1).stationName);
+		// //
+		// System.out.println(Database.getInstance().getStation(1).region.get(0));
+		//
+		// System.out.println("Stations: "
+		// + Database.getInstance().stationsCount());
+		// System.out.println("Borderstations: "
+		// + Database.getInstance().borderStationsCount());
+		//
+		// Station stations[] = Database.getInstance().getStations();
+		// for (int i = 0; i < stations.length; i++) {
+		// System.out.println();
+		// System.out.print("Regions for " + stations[i].stationName + ": ");
+		// for (Integer r : stations[i].region) {
+		// System.out.print(r + " ");
+		// }
+		// }
+		//
+		// System.out.println();
+		//
+		// for (Station b : Database.getInstance().getBorderStations()) {
+		// System.out.println();
+		// System.out.print("Borderstations for " + b.stationName + ": ");
+		// for (Integer s : b.region) {
+		// System.out.print(s + " ");
+		// }
+		// }
+
+	}
+}
